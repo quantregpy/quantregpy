@@ -1,6 +1,11 @@
 import numpy as np
 import rqf
 from scipy.stats import norm
+import collections
+
+Fit = collections.namedtuple(
+  'Fit', 
+  'na_action formula terms xlevels call tau weights residuals rho method fitted.values model coefficients residuals fitted.values na_message')
 
 def bandwidth_rq(p, n, hs = True, alpha = 0.05):
 	# Bandwidth selection for sparsity estimation two flavors:
@@ -15,6 +20,19 @@ def bandwidth_rq(p, n, hs = True, alpha = 0.05):
   else:
     bandwidth = n**-0.2 * ((4.5 * f0**4.)/(2. * x0**2. + 1.)**2.)**0.2
   return bandwidth
+
+def print_rq(x : Fit, *args):
+	print("Call:")
+	print(x.call)
+	coef = x.coefficients
+	print("\nCoefficients:\n")
+	print(coef, args)
+	rank = x.rank
+	nobs = x.residuals.shape[0]
+	p = coef.shape[1] if( len(coef.shape) > 1) else coef.shape[0]
+	rdf = nobs - p
+	print(f"\nDegrees of freedom:{nobs}total;{rdf}residual\n")
+	print(f"{x.na_message}\n")
 
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
   """ 
