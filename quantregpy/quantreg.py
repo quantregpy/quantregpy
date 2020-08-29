@@ -34,6 +34,16 @@ def print_rq(x : Fit, *args):
 	print(f"\nDegrees of freedom:{nobs}total;{rdf}residual\n")
 	print(f"{x.na_message}\n")
 
+def print_summary_rq(x, digits = 5, *args):
+	print("\nCall: ")
+	print(x.call)
+	coef = x.coef
+	tau = x.tau
+	print("\ntau: ")
+	print([round(t,digits) for t in tau.tolist()], args)
+	print("\nCoefficients:\n")
+	print([round(c, digits) for c in coef.tolist()], args)
+
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
   """ 
   function to compute rq fits for multiple y's
