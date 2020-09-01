@@ -14,6 +14,9 @@ C Output from Public domain Ratfor, version 1.0
       parameter( zero = 0.d0)
       parameter( one = 1.d0)
       parameter( two = 2.d0)
+Cf2py intent(in,out,copy) tnmat
+Cf2py intent(in) n3, a,b,t,toler,s,wa,wb, nsol, ndsol, big, lci1
+Cf2py intent(out) ift,x,e,sol,dsol,lsol, h, qn, cutoff, ci
       n=nn
       ift = 0
       wa(m+2,nn+1) = one
