@@ -313,7 +313,7 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 				dsol = dsol[1:(n * lsol)]
 				return({"sol" : sol, "dsol" : dsol})
 		if (not np.any(ci)):
-				dual = dsol[0:n]
+				dual = dsol.T.flatten()[0:n]
 				yhatCols = 1 if len(coef.shape) < 2 else coef.shape[1]
 				yhat = np.matmul(x, coef).reshape((x.shape[0], yhatCols))
 				return(dict(coefficients = coef, x = x, y = y, residuals = y - yhat, dual = dual))
