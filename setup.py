@@ -2,7 +2,7 @@ from numpy.distutils.core import Extension
 import os
 
 ext1 = Extension(name = 'rqf',
-                 sources = ['./fortran/rqs.f', './fortran/rq0.f'])
+                 sources = ['./fortran/rqs.f', './fortran/rq0.f', './fortran/rqbr.f'])
 
 if __name__ == "__main__":
     from numpy.distutils.core import setup
