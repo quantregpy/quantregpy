@@ -293,16 +293,7 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 		sFor,waFor,wbFor,nsolFor,ndsFor= np.zeros([n]), np.zeros([(n + 5), (p + 4)]), np.zeros(n), nsol,ndsol
 		tnmat = np.zeros([4,p])
 
-		flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqf.rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1) #b(m),sol(n3,nsol),a(m,nn),x(nn),wa(m5,n4),wb(m)
-#		z <- .Fortran("rqbr", as.integer(n), as.integer(p), as.integer(n +
-#				5), as.integer(p + 3), as.integer(p + 4), as.double(x),
-#				as.double(y), as.double(tau), as.double(tol), flag = as.integer(1),
-#				coef = double(p), resid = double(n), integer(n), double((n +
-#						5) * (p + 4)), double(n), as.integer(nsol), as.integer(ndsol),
-#				sol = double((p + 3) * nsol), dsol = double(n * ndsol),
-#				lsol = as.integer(0), h = integer(p * nsol), qn = as.double(qn),
-#				cutoff = as.double(cutoff), ci = double(4 * p), tnmat = double(4 *
-#						p), as.double(big), as.logical(lci1), PACKAGE = "quantreg")
+		flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqf.rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
 		if (flag != 0):
 				if flag == 1:
 					print("Solution may be nonunique")
