@@ -285,7 +285,7 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 							qnj = lr.predict(tempX) - tempY
 							qn[j] <- np.sum(qnj * qnj)
 					else:
-						raise NotImplementedError#qn = 1/diag(solve(crossprod(x)))
+						qn = 1./np.diagonal(np.linalg.inv(np.matmul(x.T,x)))
 				else:
 						lci1 = False
 						qn = np.array([0]*p)
