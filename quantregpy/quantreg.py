@@ -325,14 +325,14 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 				coefficients = np.concatenate([coef, Tci.T], axis=1)
 				residuals = y - np.matmul(x , coef)
 				c_values = tnmat.T
-				c_values = np.fliplr(c_values)
-				raise NotImplementedError 
-				#p_values = if (tcrit)
+				c_values = np.fliplr(c_values) 
+				p_values = studentT.cdf(c_values, n - p) if (tcrit) else norm.cdf(c.values)
+				# 
 				#		matrix(pt(c.values, n - p), ncol = 4)
 				#else matrix(pnorm(c.values), ncol = 4)
 				#dimnames(p.values) <- list(vnames, cnames[-1])
-				#return dict(coefficients = coefficients, residuals = residuals,
-				#		c_values = c_values, p.values = p.values)
+				return dict(coefficients = coefficients, residuals = residuals,
+						c_values = c_values, p_values = p_values)
 
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
 	""" 
