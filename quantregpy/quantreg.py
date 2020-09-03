@@ -327,10 +327,6 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 				c_values = tnmat.T
 				c_values = np.fliplr(c_values) 
 				p_values = studentT.cdf(c_values, n - p) if (tcrit) else norm.cdf(c.values)
-				# 
-				#		matrix(pt(c.values, n - p), ncol = 4)
-				#else matrix(pnorm(c.values), ncol = 4)
-				#dimnames(p.values) <- list(vnames, cnames[-1])
 				return dict(coefficients = coefficients, residuals = residuals,
 						c_values = c_values, p_values = p_values)
 
