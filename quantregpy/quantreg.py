@@ -157,31 +157,38 @@ def dropNpColumn(npmat, j):
 		return np.concatenate((npmat[:,:j],npmat[:,:j+1]), axis=1)
 
 def rq_wfit(x, y, tau, weights, method = "br",  *args):
-	raise NotImplementedError
-#{
-#	if(any(weights < 0))
-#		stop("negative weights not allowed")
+	if(any(weights < 0)):
+		raise ValueError("negative weights not allowed")
 #	contr <- attr(x, "contrasts")
-#	wx <- x * weights
-#	wy <- y * weights
-#	fit <- switch(method,
-#		fn = rq.fit.fnb(wx, wy, tau = tau, ...),
-#		br = rq.fit.br(wx, wy, tau = tau, ...),
-#		fnc = rq.fit.fnc(wx, wy, tau = tau, ...),
-#                pfn = rq.fit.pfn(wx, wy, tau = tau, ...), {
-#			what <- paste("rq.fit.", method, sep = "")
-#			if(exists(what, mode = "function"))
-#				(get(what, mode = "function"))(x, y, ...)
-#			else stop(paste("unimplemented method:", method))
-#		}
-#		)
-#        if(length(fit$sol))
-#            fit$fitted.values <- x %*% fit$sol[-(1:3),]
-#        else
-#            fit$fitted.values <- x %*% fit$coef
-#	fit$residuals <- y - fit$fitted.values
+	if len(weights.shape) != 2:
+		weights = weights.reshape((weights.shape[0],1))
+	wx = x * weights 
+	wy = y * weights
+
+	#if (method == "fn"): 
+	#fit = rq_fit_fnb(x, y, tau, *args)
+	#elif (method == "fnb"):
+	#	fit = rq_fit_fnb(x, y, tau, *args)
+	#elif (method == "fnc"):
+	#	fit = rq_fit_fnc(x, y, tau, *args)
+	#elif (method == "pfn"):
+	#	fit = rq_fit_pfn(x, y, tau, *args)
+	if (method == "br"):
+		fit = rq_fit_br(wx, wy, tau, *args)
+	else:
+		print(f"rq.fit.{method} not yet implemented")
+		raise ValueError
+	if(len(fit.get('sol',[])) > 0):
+		fit['fitted_values'] = np.matmul( x , fit['sol'][3:,:])
+	else:
+		yhat = np.matmul( x , fit['coefficients'])
+		ny = 1 if len(y.shape) == 1 else y.shape[1]
+		fit['fitted_values'] = yhat.reshape((yhat.shape[0], ny))
+	fit['residuals'] = y - fit["fitted_values"]
+	fit['weights'] = weights
+	return fit
 #	fit$contrasts <- attr(x, "contrasts")
-#	fit$weights <- weights
+#	
 #	fit
 #}
 # Function to compute regression quantiles using original simplex approach
@@ -292,7 +299,6 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 						cutoff = 0
 		sFor,waFor,wbFor,nsolFor,ndsFor= np.zeros([n]), np.zeros([(n + 5), (p + 4)]), np.zeros(n), nsol,ndsol
 		tnmat = np.zeros([4,p])
-
 		flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqf.rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
 		if (flag != 0):
 				if flag == 1:
