@@ -336,6 +336,34 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
 				return dict(coefficients = coefficients, residuals = residuals,
 						c_values = c_values, p_values = p_values)
 
+def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
+	n = y.shape[0]
+	p = 1 if len(x.shape) == 1 else x.shape[1]
+	if(n != x.shape[0]):
+		raise ValueError("x and y don't match n")
+	if (tau < eps) or (tau > 1 - eps):
+		raise ValueError("No parametric Frisch-Newton method.  Set tau in (0,1)")
+	rhs = (1 - tau) * np.sum(x, axis = 0)
+	d   = np.ones(n)
+	u   = np.ones(n)
+	wn = np.zeros(10*n)
+	wn[0:n] = (1-tau) #initial value of dual solution
+	a = x.T
+	info, wp = rqf.rqfnb(a,-y,rhs,d,u,beta,eps,wn)
+#    z <- .Fortran("rqfnb", as.integer(n), as.integer(p), a = as.double(t(as.matrix(x))),
+#        c = as.double(-y), rhs = as.double(rhs), d = as.double(d),as.double(u),
+#        beta = as.double(beta), eps = as.double(eps),
+#        wn = as.double(wn), wp = double((p + 3) * p),
+#        it.count = integer(3), info = integer(1),PACKAGE= "quantreg")
+#    if (z$info != 0)
+#        stop(paste("Error info = ", z$info, "in stepy: singular design"))
+#    coefficients <- -z$wp[1:p]
+#    names(coefficients) <- dimnames(x)[[2]]
+#    residuals <- y - x %*% coefficients
+#    list(coefficients=coefficients, tau=tau, residuals=residuals)
+#}
+
+
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
 	""" 
 	function to compute rq fits for multiple y's
