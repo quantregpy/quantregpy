@@ -1,1 +1,7 @@
 __pycache__
+build
+.ipynb_checkpoints
+.tags
+.cache/
+.DS_Store
+
