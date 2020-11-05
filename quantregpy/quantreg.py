@@ -1,5 +1,5 @@
 import numpy as np
-import rqf
+from quantregpy._fortran import rqbr, rqfnb, rqs
 from scipy.stats import norm
 from scipy.stats import t as studentT
 from sklearn.linear_model import LinearRegression
@@ -127,12 +127,12 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
   return fit
 
 def rq_fit(x : np.array, y : np.array, tau = 0.5, method = "br", *args):
-  #if (method == "fn"): 
-  #	fit = dict() #fit = rq_fit_fnb(x, y, tau, *args)
-  #elif (method == "fnb"):
-  #	fit = rq_fit_fnb(x, y, tau, *args)
+  if (method == "fn"): 
+    fit = rq_fit_fnb(x, y, tau, *args)
+  elif (method == "fnb"):
+    fit = rq_fit_fnb(x, y, tau, *args)
   #elif (method == "fnc"):
-  #	fit = rq_fit_fnc(x, y, tau, *args)
+  #  fit = rq_fit_fnc(x, y, tau, *args)
   #elif (method == "pfn"):
   #	fit = rq_fit_pfn(x, y, tau, *args)
   if (method == "br"):
@@ -165,14 +165,14 @@ def rq_wfit(x, y, tau, weights, method = "br",  *args):
   wx = x * weights 
   wy = y * weights
 
-  #if (method == "fn"): 
-  #fit = rq_fit_fnb(x, y, tau, *args)
-  #elif (method == "fnb"):
-  #	fit = rq_fit_fnb(x, y, tau, *args)
+  if (method == "fn"): 
+    fit = rq_fit_fnb(x, y, tau, *args)
+  elif (method == "fnb"):
+    fit = rq_fit_fnb(x, y, tau, *args)
   #elif (method == "fnc"):
-  #	fit = rq_fit_fnc(x, y, tau, *args)
+  #  fit = rq_fit_fnc(x, y, tau, *args)
   #elif (method == "pfn"):
-  #	fit = rq_fit_pfn(x, y, tau, *args)
+  #  fit = rq_fit_pfn(x, y, tau, *args)
   if (method == "br"):
     fit = rq_fit_br(wx, wy, tau, *args)
   else:
@@ -187,10 +187,7 @@ def rq_wfit(x, y, tau, weights, method = "br",  *args):
   fit['residuals'] = y - fit["fitted_values"]
   fit['weights'] = weights
   return fit
-#	fit$contrasts <- attr(x, "contrasts")
-#	
-#	fit
-#}
+
 # Function to compute regression quantiles using original simplex approach
 # of Barrodale-Roberts/Koenker-d'Orey.  There are several options.
 # The options are somewhat different than those available for the Frisch-
@@ -299,7 +296,7 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
             cutoff = 0
     sFor,waFor,wbFor,nsolFor,ndsFor= np.zeros([n]), np.zeros([(n + 5), (p + 4)]), np.zeros(n), nsol,ndsol
     tnmat = np.zeros([4,p])
-    flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqf.rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
+    flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
     if (flag != 0):
         if flag == 1:
           print("Solution may be nonunique")
@@ -349,21 +346,46 @@ def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
   wn = np.zeros(10*n)
   wn[0:n] = (1-tau) #initial value of dual solution
   a = x.T
-  info, wp = rqf.rqfnb(a,-y,rhs,d,u,beta,eps,wn)
-#    z <- .Fortran("rqfnb", as.integer(n), as.integer(p), a = as.double(t(as.matrix(x))),
-#        c = as.double(-y), rhs = as.double(rhs), d = as.double(d),as.double(u),
-#        beta = as.double(beta), eps = as.double(eps),
-#        wn = as.double(wn), wp = double((p + 3) * p),
-#        it.count = integer(3), info = integer(1),PACKAGE= "quantreg")
+  info, wp = rqfnb(a,-y,rhs,d,u,beta,eps,wn)
+  if (info != 0):
+    raise ValueError(f"Error info = {info} in stepy: singular design")
+  coefficients = wp[0:p]
+  residuals = y - np.matmul(x,coefficients)
+  return dict(coefficients=coefficients, tau=tau, residuals=residuals)
+
+def rq_fit_fnc(x, y, R, r, tau = 0.5, beta = 0.9995, eps = 1e-06):
+  n1 = y.shape[0]
+  n2 = r.shape[0]
+  p = 1 if len(x.shape) == 1 else x.shape[1]
+  if (n1 != x.shape[0]):
+    raise ValueError("x and y don't match n1")
+  if (n2 != R.shape[0]):
+    raise ValueError("R and r don't match n2")
+  if (p != ( 1 if len(R.shape) == 1 else R.shape[1] ) ):
+    raise ValueError("R and x don't match p")
+  if (tau < eps) or (tau > 1 - eps):
+    raise ValueError("No parametric Frisch-Newton method.  Set tau in (0,1)")
+#    rhs <- (1 - tau) * apply(x, 2, sum)
+#    u <- rep(1, max(n1,n2)) #upper bound vector and scratch vector
+#    wn1 <- rep(0, 9 * n1)
+#    wn1[1:n1] <- (1 - tau) #store the values of x1
+#    wn2 <- rep(0, 6 * n2)
+#    wn2[1:n2] <- 1 #store the values of x2
+#    z <- .Fortran("rqfnc", as.integer(n1), as.integer(n2), as.integer(p),
+#	a1 = as.double(t(as.matrix(x))), c1 = as.double(-y),
+#	a2 = as.double(t(as.matrix(R))), c2 = as.double(-r),
+#	rhs = as.double(rhs), d1 = double(n1), d2 = double(n2),
+#	as.double(u), beta = as.double(beta), eps = as.double(eps),
+#        wn1 = as.double(wn1), wn2 = as.double(wn2), wp = double((p + 3) * p),
+#        it.count = integer(3), info = integer(1), PACKAGE = "quantreg")
 #    if (z$info != 0)
-#        stop(paste("Error info = ", z$info, "in stepy: singular design"))
+#        stop(paste("Error info = ", z$info, "in stepy2: singular design"))
 #    coefficients <- -z$wp[1:p]
 #    names(coefficients) <- dimnames(x)[[2]]
 #    residuals <- y - x %*% coefficients
-#    list(coefficients=coefficients, tau=tau, residuals=residuals)
+#    it.count <- z$it.count
+#    list(coefficients=coefficients, tau=tau, residuals=residuals, it = it.count)
 #}
-
-
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
   """ 
   function to compute rq fits for multiple y's
@@ -372,7 +394,7 @@ def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
   n = x.shape[0]
   m = y.shape[1]
 
-  flag, coef, e = rqf.rqs(
+  flag, coef, e = rqs(
                           x,
                           y,
                           tau,
