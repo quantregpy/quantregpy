@@ -26,8 +26,8 @@ jobs:
     - name: Build and Update
       run: |
         python UpdateVersion.py
-        python setup.py sdist
-        python setup.py bdist
+        pip install -q build
+        python -m build -s
     - name: Upload Build Files
       uses: actions/upload-artifact@v2
       with:
