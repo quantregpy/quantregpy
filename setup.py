@@ -27,8 +27,8 @@ metadata = dict(
     url="https://github.com/quantregpy",
     license='GNU',
     python_requires='>=3.6',
-    version="0.0.11",
-    install_requires = ["patsy", "numpy", "scipy", "pandas", "scikit-learn"]
+    version="0.0.14",
+    install_requires = ["patsy", "numpy==1.19.2", "scipy", "pandas", "scikit-learn"]
 )
 # Disable OSX Accelerate, it has too old LAPACK
 
