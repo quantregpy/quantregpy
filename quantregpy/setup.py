@@ -22,6 +22,7 @@ def configuration(parent_package='',top_path=None):
                     sources = rqfSources,
                     library_dirs= lapack_info['library_dirs'],
                     libraries = lapack_info['libraries'],
+                    extra_link_args=["-static", "-static-libgfortran", "-static-libgcc"]
                 )
     else:
         config.add_extension(name = rqfName,
