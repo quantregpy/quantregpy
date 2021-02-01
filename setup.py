@@ -16,6 +16,7 @@ def configuration(parent_package='', top_path=None):
                        delegate_options_to_subpackages=True,
                        quiet=True)
     config.add_subpackage('quantregpy')
+    config.add_data_files('VERSION')
 
     return config
 with open("VERSION","r") as f:
