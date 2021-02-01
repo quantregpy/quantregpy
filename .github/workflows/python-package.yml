@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7]
@@ -25,8 +25,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Build and Update
       run: |
-        echo -n "0.1.${GITHUB_RUN_NUMBER}" > VERSION
-        echo -n "0.1.${GITHUB_RUN_NUMBER}"
+        echo -n "0.1.$GITHUB_RUN_NUMBER" > VERSION
+        echo "$GITHUB_RUN_NUMBER"
         pip install -q build
         python -m build -s
     - name: Upload Build Files
