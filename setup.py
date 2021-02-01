@@ -18,7 +18,8 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('quantregpy')
 
     return config
-
+with open("VERSION","r") as f:
+  version = f.read()
 metadata = dict(
     name='quantregpy',
     maintainer="David Kaftan and Paul Kaefer",
@@ -27,7 +28,7 @@ metadata = dict(
     url="https://github.com/quantregpy",
     license='GNU',
     python_requires='>=3.6',
-    version="0.0.14",
+    version=version,
     install_requires = ["patsy", "numpy==1.19.2", "scipy", "pandas", "scikit-learn"]
 )
 # Disable OSX Accelerate, it has too old LAPACK
