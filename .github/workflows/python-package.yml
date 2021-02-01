@@ -26,6 +26,7 @@ jobs:
     - name: Build and Update
       run: |
         echo -n "0.1.$GITHUB_RUN_NUMBER" > VERSION
+        echo -n "0.1.$GITHUB_RUN_NUMBER"
         pip install -q build
         python -m build -s
     - name: Upload Build Files
