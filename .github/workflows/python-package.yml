@@ -25,7 +25,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Build and Update
       run: |
-        python UpdateVersion.py
+        echo -n "0.1.$GITHUB_RUN_NUMBER" > VERSION
         pip install -q build
         python -m build -s
     - name: Upload Build Files
