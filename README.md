@@ -15,6 +15,7 @@ If this project matures, I will write better documentation. However, I am trying
 
 ## Installation 
 Dependencies: You must have a fortran compiler on your machine. At the moment I cannot figure out a good way to precompile the fortran modules (though I am sure there are better ways).
+
     pip install quantregpy
 
 ## Sample usage
