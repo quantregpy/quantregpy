@@ -48,8 +48,8 @@ jobs:
     - name: build-wheel
       run: |
         mkdir /output
-        ls
-        /opt/python/cp36-cp36m/bin/pip wheel ./dist/* -w output   
+        echo -n "quantregpy-0.1.$GITHUB_RUN_NUMBER.tar.gz"
+        /opt/python/cp36-cp36m/bin/pip wheel ./* -w output   
         auditwheel repair /output/*whl -w /output
         - name: Upload Build Files
     - name: upload-wheel
