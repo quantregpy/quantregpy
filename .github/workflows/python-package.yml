@@ -48,7 +48,7 @@ jobs:
     - name: build-wheel
       run: |
         mkdir /output
-        /opt/python/cp36-36mu/pip wheel ./dist -w output   
+        /opt/python/cp36-cp36m/bin/pip wheel ./dist -w output   
         auditwheel repair /output/*whl -w /output
         - name: Upload Build Files
     - name: upload-wheel
