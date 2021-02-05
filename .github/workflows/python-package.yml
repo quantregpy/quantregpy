@@ -35,10 +35,17 @@ jobs:
         path: dist/*
   build-wheel:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
     container:
       image: quay.io/pypa/manylinux2014_x86_64
     steps:
-    - name: Log the node version
+    - name: Download Build Files
+      uses: actions/download-artifact@v2
+      with:
+        name: build_results
+    - name: build-wheel
       run: |
-        echo "$GITHUB_RUN_NUMBER"      
+        python -m pip wheel ./dist/*      
 
