@@ -48,7 +48,8 @@ jobs:
     - name: install-pip
       run: |
         yum install epel-release
-        yum -y install pip
+        yum -y install python-pip
+        python --version
     - name: build-wheel
       run: |
         python -m pip wheel ./dist/*      
