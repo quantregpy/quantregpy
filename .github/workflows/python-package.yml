@@ -45,12 +45,12 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: build_results
-    - name: install-pip
-      run: |
-        yum install epel-release
-        yum -y install python-pip
-        python --version
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: build-wheel
       run: |
+        python --version
         python -m pip wheel ./dist/*      
 
