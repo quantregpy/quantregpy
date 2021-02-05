@@ -21,7 +21,9 @@ def bandwidth_rq(p, n, hs = True, alpha = 0.05):
   x0 = norm.ppf(p)#qnorm(p)
   f0 = norm.pdf(x0)#dnorm(x0)
   if(hs):
-    bandwidth = ( n**(-1./3.) * norm.ppf(1. - alpha/2.)**(2./3.) * ((1.5 * f0**2.)/(2. * x0**2. + 1.))**(1./3.) )
+    bandwidth = ( n**(-1./3.) 
+      * norm.ppf(1. - alpha/2.)**(2./3.) 
+      * ((1.5 * f0**2.)/(2. * x0**2. + 1.))**(1./3.) )
   else:
     bandwidth = n**-0.2 * ((4.5 * f0**4.)/(2. * x0**2. + 1.)**2.)**0.2
   return bandwidth
@@ -79,21 +81,21 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
     resid = np.zeros((X.shape[0], tau.shape[0]))
     for i in range(tau.shape[0]):
       z = rq_wfit(X, Y, tau[i], weights, method, *args) if not (weights is None) else rq_fit(X, Y, tau[i], method, *args)
-      coef[:,i] = z.coefficients
-      resid[:,i] = z.residuals
-      rho[i] = np.sum(Rho(z.residuals,tau[i]))
-      fitted[:,i] = Y - z.residuals
+      coef[:,i] = z['coefficients']
+      resid[:,i] = z['residuals']
+      rho[i] = np.sum(Rho(z['residuals'],tau[i]))
+      fitted[:,i] = Y - z['residuals']
     taulabs = f"tau={np.around(tau,3)}"
     fit = deepcopy(z)
-    fit.coefficients = coef
-    fit.residuals = resid
-    fit.fitted_values = fitted
+    fit['coefficients'] = coef
+    fit['residuals'] = resid
+    fit['fitted_values'] = fitted
     if(method == "lasso"): 
-      fit.Class = ("lassorqs","rqs")
+      fit['Class'] = ("lassorqs","rqs")
     elif(method == "scad"):
-      fit.Class = ("scadrqs","rqs")
+      fit['Class'] = ("scadrqs","rqs")
     else:
-      fit.Class = "rqs"
+      fit['Class'] = "rqs"
   else:
     process = (tau < 0) or (tau > 1)
     if(tau == 0):
@@ -333,14 +335,15 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
         return dict(coefficients = coefficients, residuals = residuals,
             c_values = c_values, p_values = p_values)
 
-def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
+def rq_fit_fnb (x, y, tau = 0.5, rhs = None , beta = 0.99995, eps = 1e-06):
   n = y.shape[0]
   p = 1 if len(x.shape) == 1 else x.shape[1]
   if(n != x.shape[0]):
     raise ValueError("x and y don't match n")
   if (tau < eps) or (tau > 1 - eps):
     raise ValueError("No parametric Frisch-Newton method.  Set tau in (0,1)")
-  rhs = (1 - tau) * np.sum(x, axis = 0)
+  if rhs is None:
+    rhs = (1 - tau) * np.sum(x, axis = 0)
   d   = np.ones(n)
   u   = np.ones(n)
   wn = np.zeros(10*n)
