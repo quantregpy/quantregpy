@@ -74,7 +74,7 @@ jobs:
         name: build_results
     - name: Build windows wheel
       run: |
-        pip wheel ./* -w output
+        pip wheel "quantregpy-0.1.%GITHUB_RUN_NUMBER%.tar.gz" -w output
     - name: Upload Build Files
       uses: actions/upload-artifact@v2
       with:
