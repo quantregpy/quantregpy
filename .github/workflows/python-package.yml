@@ -50,6 +50,7 @@ jobs:
         mkdir /output
         echo -n "quantregpy-0.1.$GITHUB_RUN_NUMBER.tar.gz"
         /opt/python/cp36-cp36m/bin/pip wheel ./* -w output   
+        ls
         auditwheel repair /output/*whl -w /output
         - name: Upload Build Files
     - name: upload-wheel
