@@ -10,8 +10,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  build-source:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,3 +33,12 @@ jobs:
       with:
         name: build_results
         path: dist/*
+  build-wheel:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux2014_x86_64
+    steps:
+    - name: Log the node version
+      run: |
+        echo "$GITHUB_RUN_NUMBER"      
+
