@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6]
+        python-version: [36, 37, 38]
     container:
       image: quay.io/pypa/manylinux2014_x86_64
     steps:
@@ -49,10 +49,32 @@ jobs:
       run: |
         mkdir /output
         echo -n "quantregpy-0.1.$GITHUB_RUN_NUMBER.tar.gz"
-        /opt/python/cp36-cp36m/bin/pip wheel ./* -w output   
+        /opt/python/cp${{ matrix.python-version }}-cp${{ matrix.python-version }}m/bin/pip wheel ./* -w output   
         auditwheel repair ./output/quantregpy*whl -w ./output
     - name: upload-wheel
       uses: actions/upload-artifact@v2
       with:
         name: build_results
         path: output/quantregpy*whl
+  build-wheel-win:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Download Build Files
+      uses: actions/download-artifact@v2
+      with:
+        name: build_results
+    - name: Build windows wheel
+      run: |
+        pip wheel ./* -w output
+    - name: Upload Build Files
+      uses: actions/upload-artifact@v2
+      with:
+        name: build_results
+        path: ./output/*
