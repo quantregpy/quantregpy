@@ -45,6 +45,9 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: build_results
+    - name: install-pip
+      run: |
+        apt install pip
     - name: build-wheel
       run: |
         python -m pip wheel ./dist/*      
