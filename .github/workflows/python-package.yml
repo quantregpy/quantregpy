@@ -74,9 +74,8 @@ jobs:
         name: build_results
     - name: Build windows wheel
       run: |
-        dir /b/s quantregpy*.tar.gz > tmp
-        set /p myvar= < tmp 
-        pip wheel "%myvar%" -w output
+        FOR /F "tokens=*" %g IN ('dir /b/s quantregpy*.tar.gz') do (SET VAR=%g) 
+        pip wheel "%VAR%" -w output
     - name: Upload Build Files
       uses: actions/upload-artifact@v2
       with:
