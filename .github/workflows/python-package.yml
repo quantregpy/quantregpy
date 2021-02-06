@@ -74,7 +74,7 @@ jobs:
         name: build_results
     - name: Build windows wheel
       run: |
-        $a = dir *0.1.99.tar* | select -ExpandProperty Name
+        $a = dir quantregpy*.tar* | select -ExpandProperty Name
         pip wheel $a -w output
     - name: Upload Build Files
       uses: actions/upload-artifact@v2
