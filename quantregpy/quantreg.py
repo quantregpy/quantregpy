@@ -13,11 +13,12 @@ Fit = collections.namedtuple(
   'na_action formula terms x_design y_design call tau weights residuals rho method model coefficients fitted_values na_message Class')
 
 def bandwidth_rq(p, n, hs = True, alpha = 0.05):
-  # Bandwidth selection for sparsity estimation two flavors:
-  #	Hall and Sheather(1988, JRSS(B)) rate = O(n^{-1/3})
-  #	Bofinger (1975, Aus. J. Stat)  -- rate = O(n^{-1/5})
-  # Generally speaking, default method, hs=TRUE is preferred.
-
+  """
+  Bandwidth selection for sparsity estimation two flavors:
+  Hall and Sheather(1988, JRSS(B)) rate = O(n^{-1/3})
+  Bofinger (1975, Aus. J. Stat)  -- rate = O(n^{-1/5})
+  Generally speaking, default method, hs=TRUE is preferred.
+  """
   x0 = norm.ppf(p)#qnorm(p)
   f0 = norm.pdf(x0)#dnorm(x0)
   if(hs):
@@ -188,150 +189,151 @@ def rq_wfit(x, y, tau, weights, method = "br",  *args):
   fit['weights'] = weights
   return fit
 
-# Function to compute regression quantiles using original simplex approach
-# of Barrodale-Roberts/Koenker-d'Orey.  There are several options.
-# The options are somewhat different than those available for the Frisch-
-# Newton version of the algorithm, reflecting the different natures of the
-# problems typically solved.  Succintly BR for "small" problems, FN for
-# "large" ones.  Obviously, these terms are conditioned by available hardware.
-#
-# Basically there are two modes of use:
-# 1.  For Single Quantiles:
-#
-#       if tau is between 0 and 1 then only one quantile solution is computed.
-#
-#       if ci = FALSE  then just the point estimate and residuals are returned
-#		If the column dimension of x is 1 then ci is set to FALSE since
-#		since the rank inversion method has no proper null model.
-#       if ci = TRUE  then there are two options for confidence intervals:
-#
-#               1.  if iid = TRUE we get the original version of the rank
-#                       inversion intervals as in Koenker (1994)
-#               2.  if iid = FALSE we get the new version of the rank inversion
-#                       intervals which accounts for heterogeneity across
-#                       observations in the conditional density of the response.
-#                       The theory of this is described in Koenker-Machado(1999)
-#               Both approaches involve solving a parametric linear programming
-#               problem, the difference is only in the factor qn which
-#               determines how far the PP goes.  In either case one can
-#               specify two other options:
-#                       1. interp = FALSE returns two intervals an upper and a
-#                               lower corresponding to a level slightly
-#                               above and slightly below the one specified
-#                               by the parameter alpha and dictated by the
-#                               essential discreteness in the test statistic.
-#				interp = TRUE  returns a single interval based on
-#                               linear interpolation of the two intervals
-#                               returned:  c.values and p.values which give
-#                               the critical values and p.values of the
-#                               upper and lower intervals. Default: interp = TRUE.
-#                       2.  tcrit = TRUE uses Student t critical values while
-#                               tcrit = FALSE uses normal theory ones.
-# 2. For Multiple Quantiles:
-#
-#       if tau < 0 or tau >1 then it is presumed that the user wants to find
-#       all of the rq solutions in tau, and the program computes the whole
-#	quantile regression solution as a process in tau, the resulting arrays
-#	containing the primal and dual solutions, betahat(tau), ahat(tau)
-#       are called sol and dsol.  These arrays aren't printed by the default
-#       print function but they are available as attributes.
-#       It should be emphasized that this form of the solution can be
-#	both memory and cpu quite intensive.  On typical machines it is
-#	not recommended for problems with n > 10,000.
-#	In large problems a grid of solutions is probably sufficient.
-#
 def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
   interp = True, tcrit = True):
-    tol = np.finfo(float).eps**(2/3)
-    eps = tol
-    big = np.finfo(float).max**(2/3)
-    p = x.shape[1]
-    n = x.shape[0]
-    ny = y.shape[1]
-    nsol = 2
-    ndsol = 2
-    # Check for Singularity of X since br fortran isn't very reliable about this
-    #storage.mode(y) <- "double"
-    if (np.linalg.matrix_rank(x) < p):
-        raise ValueError("Singular design matrix")
-    if (tau < 0) or (tau > 1):
-      nsol = 3 * n
-      ndsol = 3 * n
-      lci1 = False
-      qn = np.array([0] * p)
-      cutoff = 0
-      tau = -1
-    else:
-        if (p == 1):
-            ci = False
-        if (ci):
-          lci1 = True
-          if (tcrit):
-            cutoff = studentT.ppf(1 - alpha/2, n - p)
-          else: 
-            cutoff = norm.ppf(1 - alpha/2.)
-          if (not iid):
-            h = bandwidth_rq(tau, n, hs = True)
-            bhi = rq_fit_br(x, y, tau + h, ci = False)
-            bhi = bhi['coefficients']
-            blo = rq_fit_br(x, y, tau - h, ci = False)
-            blo = blo['coefficients']
-            dyhat = np.matmul(x, (bhi - blo))
-            if (np.any(dyhat <= 0)):
-              pfis = (100 * np.sum(dyhat <= 0))/n
-              print(f"{pfis}percent fis <=0")
-            f = np.maximum(eps, (2 * h)/(dyhat - eps))
-            qn = np.array([0]*p)
-            for j in range(p):
-              tempX = dropNpColumn(x, j)
-              tempY = x[:,j]
-              lr = LinearRegression().fit(tempX, tempY, sample_weight=f)
-              qnj = lr.predict(tempX) - tempY
-              qn[j] <- np.sum(qnj * qnj)
-          else:
-            qn = 1./np.diagonal(np.linalg.inv(np.matmul(x.T,x)))
+  """
+  Function to compute regression quantiles using original simplex approach
+  of Barrodale-Roberts/Koenker-d'Orey.  There are several options.
+  The options are somewhat different than those available for the Frisch-
+  Newton version of the algorithm, reflecting the different natures of the
+  problems typically solved.  Succintly BR for "small" problems, FN for
+  "large" ones.  Obviously, these terms are conditioned by available hardware.
+
+  Basically there are two modes of use:
+  1.  For Single Quantiles:
+ 
+        if tau is between 0 and 1 then only one quantile solution is computed.
+ 
+        if ci = FALSE  then just the point estimate and residuals are returned
+ 		If the column dimension of x is 1 then ci is set to FALSE since
+ 		since the rank inversion method has no proper null model.
+        if ci = TRUE  then there are two options for confidence intervals:
+ 
+                1.  if iid = TRUE we get the original version of the rank
+                        inversion intervals as in Koenker (1994)
+                2.  if iid = FALSE we get the new version of the rank inversion
+                        intervals which accounts for heterogeneity across
+                        observations in the conditional density of the response.
+                        The theory of this is described in Koenker-Machado(1999)
+                Both approaches involve solving a parametric linear programming
+                problem, the difference is only in the factor qn which
+                determines how far the PP goes.  In either case one can
+                specify two other options:
+                        1. interp = FALSE returns two intervals an upper and a
+                                lower corresponding to a level slightly
+                                above and slightly below the one specified
+                                by the parameter alpha and dictated by the
+                                essential discreteness in the test statistic.
+ 				interp = TRUE  returns a single interval based on
+                                linear interpolation of the two intervals
+                                returned:  c.values and p.values which give
+                                the critical values and p.values of the
+                                upper and lower intervals. Default: interp = TRUE.
+                        2.  tcrit = TRUE uses Student t critical values while
+                                tcrit = FALSE uses normal theory ones.
+  2. For Multiple Quantiles:
+ 
+        if tau < 0 or tau >1 then it is presumed that the user wants to find
+        all of the rq solutions in tau, and the program computes the whole
+ 	quantile regression solution as a process in tau, the resulting arrays
+ 	containing the primal and dual solutions, betahat(tau), ahat(tau)
+        are called sol and dsol.  These arrays aren't printed by the default
+        print function but they are available as attributes.
+        It should be emphasized that this form of the solution can be
+ 	both memory and cpu quite intensive.  On typical machines it is
+ 	not recommended for problems with n > 10,000.
+ 	In large problems a grid of solutions is probably sufficient.
+  """
+  tol = np.finfo(float).eps**(2/3)
+  eps = tol
+  big = np.finfo(float).max**(2/3)
+  p = x.shape[1]
+  n = x.shape[0]
+  ny = y.shape[1]
+  nsol = 2
+  ndsol = 2
+  # Check for Singularity of X since br fortran isn't very reliable about this
+  #storage.mode(y) <- "double"
+  if (np.linalg.matrix_rank(x) < p):
+      raise ValueError("Singular design matrix")
+  if (tau < 0) or (tau > 1):
+    nsol = 3 * n
+    ndsol = 3 * n
+    lci1 = False
+    qn = np.array([0] * p)
+    cutoff = 0
+    tau = -1
+  else:
+      if (p == 1):
+          ci = False
+      if (ci):
+        lci1 = True
+        if (tcrit):
+          cutoff = studentT.ppf(1 - alpha/2, n - p)
+        else: 
+          cutoff = norm.ppf(1 - alpha/2.)
+        if (not iid):
+          h = bandwidth_rq(tau, n, hs = True)
+          bhi = rq_fit_br(x, y, tau + h, ci = False)
+          bhi = bhi['coefficients']
+          blo = rq_fit_br(x, y, tau - h, ci = False)
+          blo = blo['coefficients']
+          dyhat = np.matmul(x, (bhi - blo))
+          if (np.any(dyhat <= 0)):
+            pfis = (100 * np.sum(dyhat <= 0))/n
+            print(f"{pfis}percent fis <=0")
+          f = np.maximum(eps, (2 * h)/(dyhat - eps))
+          qn = np.array([0]*p)
+          for j in range(p):
+            tempX = dropNpColumn(x, j)
+            tempY = x[:,j]
+            lr = LinearRegression().fit(tempX, tempY, sample_weight=f)
+            qnj = lr.predict(tempX) - tempY
+            qn[j] <- np.sum(qnj * qnj)
         else:
-            lci1 = False
-            qn = np.array([0]*p)
-            cutoff = 0
-    sFor,waFor,wbFor,nsolFor,ndsFor= np.zeros([n]), np.zeros([(n + 5), (p + 4)]), np.zeros(n), nsol,ndsol
-    tnmat = np.zeros([4,p])
-    flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
-    if (flag != 0):
-        if flag == 1:
-          print("Solution may be nonunique")
-        else:
-          print("Premature end - possible conditioning problem in x")
-    if (tau < 0) or (tau > 1):
-        sol = sol[1:((p + 3) * lsol)]
-        dsol = dsol[1:(n * lsol)]
-        return({"sol" : sol, "dsol" : dsol})
-    if (not np.any(ci)):
-        dual = dsol.T.flatten()[0:n]
-        yhatCols = 1 if len(coef.shape) < 2 else coef.shape[1]
-        yhat = np.matmul(x, coef).reshape((x.shape[0], yhatCols))
-        return(dict(coefficients = coef, x = x, y = y, residuals = y - yhat, dual = dual))
-    if (interp):
-        Tn = tnmat
-        Tci = ci
-        Tci[3, :] = Tci[3, :] + (np.abs(Tci[4, :] - Tci[3, :]) * (cutoff -
-            np.abs(Tn[3, :])))/np.abs(Tn[4,: ] - Tn[3, :])
-        Tci[2, :] = Tci[2, :] - (np.abs(Tci[1,: ] - Tci[2, :]) * (cutoff -
-            np.abs(Tn[2, :])))/np.abs(Tn[1, :] - Tn[2, :])
-        Tci[2, np.isnan(Tci[2,:]) ] = -big
-        Tci[3, np.isnan(Tci[3,:]) ] = big
-        coefficients = np.concatinate((coef,Tci[2:4, : ].T), axis = 1)
-        residuals = y - np.matmul(x, coef)
-        return(dict(coefficients = coefficients, residuals = residuals))
-    else:
-        Tci = ci
-        coefficients = np.concatenate([coef, Tci.T], axis=1)
-        residuals = y - np.matmul(x , coef)
-        c_values = tnmat.T
-        c_values = np.fliplr(c_values) 
-        p_values = studentT.cdf(c_values, n - p) if (tcrit) else norm.cdf(c_values)
-        return dict(coefficients = coefficients, residuals = residuals,
-            c_values = c_values, p_values = p_values)
+          qn = 1./np.diagonal(np.linalg.inv(np.matmul(x.T,x)))
+      else:
+          lci1 = False
+          qn = np.array([0]*p)
+          cutoff = 0
+  sFor,waFor,wbFor,nsolFor,ndsFor= np.zeros([n]), np.zeros([(n + 5), (p + 4)]), np.zeros(n), nsol,ndsol
+  tnmat = np.zeros([4,p])
+  flag,coef,resid,sol,dsol,lsol, h, qn, cutoff, ci, tnmat = rqbr(p+3,x,y,tau,tol,sFor,waFor,wbFor,nsolFor,ndsFor,tnmat, big, lci1)
+  if (flag != 0):
+      if flag == 1:
+        print("Solution may be nonunique")
+      else:
+        print("Premature end - possible conditioning problem in x")
+  if (tau < 0) or (tau > 1):
+      sol = sol[1:((p + 3) * lsol)]
+      dsol = dsol[1:(n * lsol)]
+      return({"sol" : sol, "dsol" : dsol})
+  if (not np.any(ci)):
+      dual = dsol.T.flatten()[0:n]
+      yhatCols = 1 if len(coef.shape) < 2 else coef.shape[1]
+      yhat = np.matmul(x, coef).reshape((x.shape[0], yhatCols))
+      return(dict(coefficients = coef, x = x, y = y, residuals = y - yhat, dual = dual))
+  if (interp):
+      Tn = tnmat
+      Tci = ci
+      Tci[3, :] = Tci[3, :] + (np.abs(Tci[4, :] - Tci[3, :]) * (cutoff -
+          np.abs(Tn[3, :])))/np.abs(Tn[4,: ] - Tn[3, :])
+      Tci[2, :] = Tci[2, :] - (np.abs(Tci[1,: ] - Tci[2, :]) * (cutoff -
+          np.abs(Tn[2, :])))/np.abs(Tn[1, :] - Tn[2, :])
+      Tci[2, np.isnan(Tci[2,:]) ] = -big
+      Tci[3, np.isnan(Tci[3,:]) ] = big
+      coefficients = np.concatinate((coef,Tci[2:4, : ].T), axis = 1)
+      residuals = y - np.matmul(x, coef)
+      return(dict(coefficients = coefficients, residuals = residuals))
+  else:
+      Tci = ci
+      coefficients = np.concatenate([coef, Tci.T], axis=1)
+      residuals = y - np.matmul(x , coef)
+      c_values = tnmat.T
+      c_values = np.fliplr(c_values) 
+      p_values = studentT.cdf(c_values, n - p) if (tcrit) else norm.cdf(c_values)
+      return dict(coefficients = coefficients, residuals = residuals,
+          c_values = c_values, p_values = p_values)
 
 def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
   n = y.shape[0]
