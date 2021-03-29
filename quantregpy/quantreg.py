@@ -7,7 +7,9 @@ from copy import deepcopy
 import pandas as pd
 import collections
 from patsy import dmatrices, DesignMatrix
+import logging
 
+logger = logging.getLogger(__name__)
 Fit = collections.namedtuple(
   'Fit', 
   'na_action formula terms x_design y_design call tau weights residuals rho method model coefficients fitted_values na_message Class')
@@ -33,7 +35,6 @@ def print_rq(x : Fit, *args):
   coef = x.coefficients
   print("\nCoefficients:\n")
   print(coef, args)
-  rank = x.rank
   nobs = x.residuals.shape[0]
   p = coef.shape[1] if( len(coef.shape) > 1) else coef.shape[0]
   rdf = nobs - p
@@ -70,7 +71,7 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
   Rho = lambda u, tau: u * (tau - (u < 0)) 
   if(tau.shape[0]>1):
     if(np.any(tau < 0) or np.any(tau > 1)):
-      print("invalid tau:  taus should be >= 0 and <= 1")
+      logger.error("invalid tau:  taus should be >= 0 and <= 1")
       raise ValueError
     tau[tau == 0] = eps
     tau[tau == 1] = 1 - eps
@@ -80,21 +81,21 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
     resid = np.zeros((X.shape[0], tau.shape[0]))
     for i in range(tau.shape[0]):
       z = rq_wfit(X, Y, tau[i], weights, method, *args) if not (weights is None) else rq_fit(X, Y, tau[i], method, *args)
-      coef[:,i] = z.coefficients
-      resid[:,i] = z.residuals
-      rho[i] = np.sum(Rho(z.residuals,tau[i]))
-      fitted[:,i] = Y - z.residuals
+      coef[:,i] = z['coefficients']
+      resid[:,i] = z['residuals']
+      rho[i] = np.sum(Rho(z['residuals'],tau[i]))
+      fitted[:,i] = Y - z['residuals']
     taulabs = f"tau={np.around(tau,3)}"
-    fit = deepcopy(z)
-    fit.coefficients = coef
-    fit.residuals = resid
-    fit.fitted_values = fitted
+    fit = dict()
+    fit['coefficients'] = coef
+    fit['residuals'] = resid
+    fit['fitted_values'] = fitted
     if(method == "lasso"): 
-      fit.Class = ("lassorqs","rqs")
+      fit['Class'] = ("lassorqs","rqs")
     elif(method == "scad"):
-      fit.Class = ("scadrqs","rqs")
+      fit['Class'] = ("scadrqs","rqs")
     else:
-      fit.Class = "rqs"
+      fit['Class'] = "rqs"
   else:
     process = (tau < 0) or (tau > 1)
     if(tau == 0):
@@ -103,15 +104,15 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
       tau = 1 - eps
     fit = rq_wfit(X, Y, tau, weights, method, *args) if not (weights is None) else rq_fit(X, Y, tau, method, *args) 
     if(process):
-      rho = [fit.sol[1,:],fit.sol[3,:]]
+      rho = [fit['sol'][1,:],fit['sol'][3,:]]
     else:
       rho = np.sum(Rho(fit['residuals'],tau))  
-  if(method == "lasso"):
-    fit['Class'] = ("lassorq","rq")
-  elif(method == "scad"):
-    fit['Class'] = ("scadrq","rq")
-  else:
-    fit['Class'] = "rq.process" if process else "rq"
+    if(method == "lasso"):
+      fit['Class'] = ("lassorq","rq")
+    elif(method == "scad"):
+      fit['Class'] = ("scadrq","rq")
+    else:
+      fit['Class'] = "rq.process" if process else "rq"
   fit['na_action'] = na_action
   fit['formula'] = formula
   fit['terms'] = mt
@@ -348,7 +349,7 @@ def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
   wn = np.zeros(10*n)
   wn[0:n] = (1-tau) #initial value of dual solution
   a = x.T
-  info, wp = rqfnb(a,-y,rhs,d,u,beta,eps,wn)
+  info, wp, nit = rqfnb(a,-y,rhs,d,u,beta,eps,wn)
   if (info != 0):
     raise ValueError(f"Error info = {info} in stepy: singular design")
   coefficients = wp[0:p]
