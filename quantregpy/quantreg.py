@@ -250,7 +250,6 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
   big = np.finfo(float).max**(2/3)
   p = x.shape[1]
   n = x.shape[0]
-  ny = y.shape[1]
   nsol = 2
   ndsol = 2
   # Check for Singularity of X since br fortran isn't very reliable about this
@@ -313,7 +312,7 @@ def rq_fit_br(x, y, tau = 0.5, alpha = 0.1, ci = False, iid = True,
       dual = dsol.T.flatten()[0:n]
       yhatCols = 1 if len(coef.shape) < 2 else coef.shape[1]
       yhat = np.matmul(x, coef).reshape((x.shape[0], yhatCols))
-      return(dict(coefficients = coef, x = x, y = y, residuals = y - yhat, dual = dual))
+      return(dict(coefficients = coef, x = x, y = y, residuals = y - yhat.flatten(), dual = dual))
   if (interp):
       Tn = tnmat
       Tci = ci
@@ -346,14 +345,14 @@ def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
   rhs = (1 - tau) * np.sum(x, axis = 0)
   d   = np.ones(n)
   u   = np.ones(n)
-  wn = np.zeros(10*n)
-  wn[0:n] = (1-tau) #initial value of dual solution
+  wn = np.zeros((n,9))
+  wn[0:n,0] = (1-tau) #initial value of dual solution
   a = x.T
-  info, wp, nit = rqfnb(a,-y,rhs,d,u,beta,eps,wn)
+  wp, nit, info = rqfnb(a,-y,rhs,d,u,beta,eps,wn)
   if (info != 0):
     raise ValueError(f"Error info = {info} in stepy: singular design")
-  coefficients = wp[0:p]
-  residuals = y - np.matmul(x,coefficients)
+  coefficients = -wp[:,0].reshape((p,1))
+  residuals = y - np.matmul(x,coefficients).flatten()
   return dict(coefficients=coefficients, tau=tau, residuals=residuals)
 
 def rq_fit_fnc(x, y, R, r, tau = 0.5, beta = 0.9995, eps = 1e-06):
