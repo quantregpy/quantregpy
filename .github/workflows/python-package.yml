@@ -5,9 +5,9 @@ name: Build Python package
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    types: [closed]
 
 jobs:
   build-source:
