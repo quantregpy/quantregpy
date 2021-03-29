@@ -1,0 +1,12 @@
+name: quantregpy_dev
+channels:
+  - defaults
+dependencies:
+  - python = 3.7
+  - pip >= 20.0
+  - scipy
+  - scikit-learn
+  - pip: 
+    - patsy>=0.5
+    - numpy==1.19.2
+    - pandas==1.2.2
