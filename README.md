@@ -14,7 +14,7 @@ The quantreg R package was accessed through [github](https://github.com/cran/qua
 If this project matures, I will write better documentation. However, I am trying to mimic the R package, so [their documentation should be useful](https://cran.r-project.org/web/packages/quantreg/quantreg.pdf)
 
 ## Installation 
-Dependencies: You must have a fortran compiler on your machine. At the moment I cannot figure out a good way to precompile the fortran modules (though I am sure there are better ways).
+Dependencies: For windows and Linux, pip install works fine. For Macs, you may have some trouble, and will need a FORTRAN compiler.
 
     pip install quantregpy
 
