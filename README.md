@@ -5,7 +5,9 @@ Fortran code from the [quantreg R package](https://github.com/cran/quantreg) is 
 
 R code from the [quantreg R package](https://github.com/cran/quantreg) is translated into python, making heavy use of [numpy](https://numpy.org).
 
-The quantreg R package was accessed through [github](https://github.com/cran/quantreg) and distributed by GPL. I cannot overstate my gratitude for the original authors, some of  whom asked to be referenced as follows:
+The quantreg R package was accessed through [github](https://github.com/cran/quantreg) and distributed by GPL. I cannot overstate my gratitude for the original authors, some of  whom are referenced as follows:
+
+> Koenker, R. (2017). Quantile regression in R: a vignette. Version of April, 17(2017), 88.
 
 > Esmond G. Ng and Barry W. Peyton, "Block sparse Cholesky algorithms on advanced uniprocessor computers". SIAM J. Sci. Stat. Comput. 14  (1993), pp. 1034-1056.
 
