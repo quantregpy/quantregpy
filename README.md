@@ -1,11 +1,11 @@
 # quantregpy
-A translation of the popular R library quantreg to python for quantile regression
+A translation of the popular R library quantreg (Authored by Roger Koenker) to python for quantile regression
 
 Fortran code from the [quantreg R package](https://github.com/cran/quantreg) is modified to work with [f2py](https://numpy.org/doc/stable/f2py/)
 
 R code from the [quantreg R package](https://github.com/cran/quantreg) is translated into python, making heavy use of [numpy](https://numpy.org).
 
-The quantreg R package was accessed through [github](https://github.com/cran/quantreg) and distributed by GPL. I cannot overstate my gratitude for the original authors, who asked to be referenced as follows:
+The quantreg R package was accessed through [github](https://github.com/cran/quantreg) and distributed by GPL. I cannot overstate my gratitude for the original authors, some of  whom asked to be referenced as follows:
 
 > Esmond G. Ng and Barry W. Peyton, "Block sparse Cholesky algorithms on advanced uniprocessor computers". SIAM J. Sci. Stat. Comput. 14  (1993), pp. 1034-1056.
 
