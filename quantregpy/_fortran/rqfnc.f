@@ -6,6 +6,8 @@ C Output from Public domain Ratfor, version 1.0
      *),u(n1)
       double precision wn1(n1,9),wn2(n2,6),wp(p,p+3)
       double precision one,beta,eps
+Cf2py intent(in) a1, y, a2, r, rhs, u, beta, eps, wn1, wn2
+Cf2py intent(out) d1, d2, wp, nit, info
       parameter(one = 1.0d0)
       call lpfnc(n1,n2,p,a1,y,a2,r,rhs,d1,d2,u,beta,eps,wn1(1,1),wn2(1,1
      *),wn1(1,2), wp(1,1),wn1(1,3),wn2(1,2),wn1(1,4),wn1(1,5),wn2(1,3),w

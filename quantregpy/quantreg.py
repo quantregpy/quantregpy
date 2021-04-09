@@ -1,5 +1,5 @@
 import numpy as np
-from quantregpy._fortran import rqbr, rqfnb, rqs
+from quantregpy._fortran import rqbr, rqfnb, rqs, rqfnc
 from scipy.stats import norm
 from scipy.stats import t as studentT
 from sklearn.linear_model import LinearRegression
@@ -133,8 +133,8 @@ def rq_fit(x : np.array, y : np.array, tau = 0.5, method = "br", *args):
     fit = rq_fit_fnb(x, y, tau, *args)
   elif (method == "fnb"):
     fit = rq_fit_fnb(x, y, tau, *args)
-  #elif (method == "fnc"):
-  #  fit = rq_fit_fnc(x, y, tau, *args)
+  elif (method == "fnc"):
+    fit = rq_fit_fnc(x, y, tau, *args)
   #elif (method == "pfn"):
   #	fit = rq_fit_pfn(x, y, tau, *args)
   if (method == "br"):
@@ -171,8 +171,8 @@ def rq_wfit(x, y, tau, weights, method = "br",  *args):
     fit = rq_fit_fnb(x, y, tau, *args)
   elif (method == "fnb"):
     fit = rq_fit_fnb(x, y, tau, *args)
-  #elif (method == "fnc"):
-  #  fit = rq_fit_fnc(x, y, tau, *args)
+  elif (method == "fnc"):
+    fit = rq_fit_fnc(x, y, tau, *args)
   #elif (method == "pfn"):
   #  fit = rq_fit_pfn(x, y, tau, *args)
   if (method == "br"):
@@ -367,27 +367,21 @@ def rq_fit_fnc(x, y, R, r, tau = 0.5, beta = 0.9995, eps = 1e-06):
     raise ValueError("R and x don't match p")
   if (tau < eps) or (tau > 1 - eps):
     raise ValueError("No parametric Frisch-Newton method.  Set tau in (0,1)")
-#    rhs <- (1 - tau) * apply(x, 2, sum)
-#    u <- rep(1, max(n1,n2)) #upper bound vector and scratch vector
-#    wn1 <- rep(0, 9 * n1)
-#    wn1[1:n1] <- (1 - tau) #store the values of x1
-#    wn2 <- rep(0, 6 * n2)
-#    wn2[1:n2] <- 1 #store the values of x2
-#    z <- .Fortran("rqfnc", as.integer(n1), as.integer(n2), as.integer(p),
-#	a1 = as.double(t(as.matrix(x))), c1 = as.double(-y),
-#	a2 = as.double(t(as.matrix(R))), c2 = as.double(-r),
-#	rhs = as.double(rhs), d1 = double(n1), d2 = double(n2),
-#	as.double(u), beta = as.double(beta), eps = as.double(eps),
-#        wn1 = as.double(wn1), wn2 = as.double(wn2), wp = double((p + 3) * p),
-#        it.count = integer(3), info = integer(1), PACKAGE = "quantreg")
-#    if (z$info != 0)
-#        stop(paste("Error info = ", z$info, "in stepy2: singular design"))
-#    coefficients <- -z$wp[1:p]
-#    names(coefficients) <- dimnames(x)[[2]]
-#    residuals <- y - x %*% coefficients
-#    it.count <- z$it.count
-#    list(coefficients=coefficients, tau=tau, residuals=residuals, it = it.count)
-#}
+  rhs = (1 - tau) * np.sum(x, axis = 0)
+  u = np.ones(max(n1,n2)) #upper bound vector and scratch vector
+  wn1 = np.zeros((n1, 9) )
+  wn1[0:n1] = (1 - tau) #store the values of x1
+  wn2 = np.zeros(( n2, 6))
+  wn2[0:n2] = 1 #store the values of x2
+  _, _, wp, nit, info = rqfnc( x.T, -y, R.T, -r, rhs, u, beta, eps, wn1, wn2)
+  if (info != 0):
+    raise ValueError(f"Error info = {info} in stepy: singular design")
+  print(wp)
+  coefficients = -wp[0:p,0]
+  residuals = y - np.matmul(x,coefficients).flatten()
+  it_count = nit
+  return dict(coefficients=coefficients, tau=tau, residuals=residuals)
+
 def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
   """ 
   function to compute rq fits for multiple y's
