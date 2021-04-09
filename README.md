@@ -13,6 +13,10 @@ The quantreg R package was accessed through [github](https://github.com/cran/qua
 
 > John R. Gilbert, Esmond G. Ng, and Barry W. Peyton, "An efficient algorithm to compute row and column counts for sparse Cholesky factorization". SIAM J. Matrix Anal. Appl. 15 (1994), pp. 1075-1091.
 
+> Koenker, R. (2005). Quantile Regression (Econometric Society Monographs). Cambridge: Cambridge University Press. doi:10.1017/CBO9780511754098
+
+> Koenker, R., Chernozhukov, V., He, X., & Peng, L. (Eds.). (2017). Handbook of quantile regression.
+
 If this project matures, I will write better documentation. However, I am trying to mimic the R package, so [their documentation should be useful](https://cran.r-project.org/web/packages/quantreg/quantreg.pdf)
 
 ## Installation 
