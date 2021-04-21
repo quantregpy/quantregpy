@@ -376,7 +376,6 @@ def rq_fit_fnc(x, y, R, r, tau = 0.5, beta = 0.9995, eps = 1e-06):
   _, _, wp, nit, info = rqfnc( x.T, -y, R.T, -r, rhs, u, beta, eps, wn1, wn2)
   if (info != 0):
     raise ValueError(f"Error info = {info} in stepy: singular design")
-  print(wp)
   coefficients = -wp[0:p,0]
   residuals = y - np.matmul(x,coefficients).flatten()
   it_count = nit
