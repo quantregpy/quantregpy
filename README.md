@@ -1,6 +1,8 @@
 # quantregpy
 A translation of the popular R library quantreg (Authored by Roger Koenker) to python for quantile regression
 
+**This library is very much experimental at this point.
+
 Fortran code from the [quantreg R package](https://github.com/cran/quantreg) is modified to work with [f2py](https://numpy.org/doc/stable/f2py/)
 
 R code from the [quantreg R package](https://github.com/cran/quantreg) is translated into python, making heavy use of [numpy](https://numpy.org).
