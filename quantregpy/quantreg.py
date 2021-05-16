@@ -1,5 +1,5 @@
 import numpy as np
-from quantregpy._fortran import rqbr, rqfnb, rqs, rqfnc
+from quantregpy._fortran import rqbr, rqfnb, rqs, rqfnc, qfnb, pfnb
 from scipy.stats import norm
 from scipy.stats import t as studentT
 from sklearn.linear_model import LinearRegression
@@ -137,15 +137,14 @@ def rq_fit(x : np.array, y : np.array, tau = 0.5, method = "br", *args):
     fit = rq_fit_fnc(x, y, tau, *args)
   #elif (method == "pfn"):
   #	fit = rq_fit_pfn(x, y, tau, *args)
-  if (method == "br"):
+  elif (method == "br"):
     fit = rq_fit_br(x, y, tau, *args)
   #elif (method == "lasso"):
   #	fit = rq_fit_lasso(x, y, tau, *args)
   #elif (method == "scad"):
   #	fit = rq_fit_scad(x, y, tau = tau, *args)
   else:
-    print(f"rq.fit.{method} not yet implemented")
-    raise ValueError
+    raise ValueError(f"rq.fit.{method} not yet implemented")
 
   fit['fitted_values'] = y - fit['residuals']
   return fit
@@ -404,3 +403,45 @@ def rqs_fit(x, y, tau = 0.5, tol = 0.0001):
       print(f"{np.sum(flag==1)} out of {m} may be nonunique")
       
   return(coef.T)
+
+# R function for fnb call for multiple taus
+def rq_fit_qfnb(x,y,tau):
+  n = x.shape[0]
+  p =  1 if len(x.shape) == 1 else x.shape[1]
+  m = len(tau)
+  d = np.ones((1, n))
+  u = np.ones((1, n))
+  _, _, _, b, nit, info = qfnb(x.transpose(), -y, tau, d, u)
+  if(info != 0):
+    logger.warning(f"Info = {info} in stepy: singular design: nit = {nit[0]}")
+  coefficients = -np.reshape(b, (p, m))
+  return dict(coefficients = coefficients, nit = nit, flag = info)
+
+def rq_fit_pfnb (x, y, tau, m0 = None, eps = 1e-06):
+  m = len(tau)
+  n = len(y)
+  if (x.shape[0] != n):
+    ValueError("x and y don't match n")
+  p = x.shape[1]
+  if(m0 is None):
+    m0 = int( (n**(2./3.)) * ((p ** 0.5)) ) # Needs testing!
+  s = np.random.choice(n,m0)
+  xs = x[s,:]
+  ys = y[s]
+  z = rq_fit(xs, ys, tau = tau[0], method = "fn")
+  r = y - np.matmul( x , z['coefficients'] ).flatten()
+  b = np.zeros((p,m))
+  nit =  np.zeros((5,m))
+  xxinv = np.linalg.inv((np.linalg.cholesky((np.matmul(xs.T,xs)))))
+  band = np.maximum(eps, np.sqrt(np.matmul(np.matmul(x , xxinv)**2 , np.ones(p) ) ) )
+  r, b, d, u, wn, wp, aa, yy, slo, shi, rhs, glob, ghib, nit, info = pfnb (
+    x.T,
+    y,
+    tau,
+    r,
+    -b,
+    band,
+    m0)
+  coefficients = np.reshape(-b,(p,m))
+  nit = np.reshape(nit,(5,m))
+  return dict(coefficients = coefficients, nit = nit, flag = info)
