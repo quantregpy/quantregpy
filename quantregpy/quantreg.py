@@ -135,8 +135,8 @@ def rq_fit(x : np.array, y : np.array, tau = 0.5, method = "br", *args):
     fit = rq_fit_fnb(x, y, tau, *args)
   elif (method == "fnc"):
     fit = rq_fit_fnc(x, y, tau, *args)
-  #elif (method == "pfn"):
-  #	fit = rq_fit_pfn(x, y, tau, *args)
+  elif (method == "pfnb"):
+  	fit = rq_fit_pfnb(x, y, tau, *args)
   elif (method == "br"):
     fit = rq_fit_br(x, y, tau, *args)
   #elif (method == "lasso"):
@@ -160,18 +160,17 @@ def dropNpColumn(npmat, j):
 def rq_wfit(x, y, tau, weights, method = "br",  *args):
   if(any(weights < 0)):
     raise ValueError("negative weights not allowed")
-#	contr <- attr(x, "contrasts")
   if len(weights.shape) != 2:
     weights = weights.reshape((weights.shape[0],1))
   wx = x * weights 
-  wy = y * weights
+  wy = y * weights.flatten()
 
   if (method == "fn"): 
-    fit = rq_fit_fnb(x, y, tau, *args)
+    fit = rq_fit_fnb(wx, wy, tau, *args)
   elif (method == "fnb"):
-    fit = rq_fit_fnb(x, y, tau, *args)
+    fit = rq_fit_fnb(wx, wy, tau, *args)
   elif (method == "fnc"):
-    fit = rq_fit_fnc(x, y, tau, *args)
+    fit = rq_fit_fnc(wx, wy, tau, *args)
   #elif (method == "pfn"):
   #  fit = rq_fit_pfn(x, y, tau, *args)
   if (method == "br"):
@@ -352,7 +351,7 @@ def rq_fit_fnb (x, y, tau = 0.5, beta = 0.99995, eps = 1e-06):
     raise ValueError(f"Error info = {info} in stepy: singular design")
   coefficients = -wp[:,0].reshape((p,1))
   residuals = y - np.matmul(x,coefficients).flatten()
-  return dict(coefficients=coefficients, tau=tau, residuals=residuals)
+  return dict(coefficients=coefficients.flatten(), tau=tau, residuals=residuals)
 
 def rq_fit_fnc(x, y, R, r, tau = 0.5, beta = 0.9995, eps = 1e-06):
   n1 = y.shape[0]
@@ -417,7 +416,7 @@ def rq_fit_qfnb(x,y,tau):
   coefficients = -np.reshape(b, (p, m))
   return dict(coefficients = coefficients, nit = nit, flag = info)
 
-def rq_fit_pfnb (x, y, tau, m0 = None, eps = 1e-06):
+def rq_fit_pfnb (x, y, tau = np.array([0.5]), m0 = None, eps = 1e-06):
   m = len(tau)
   n = len(y)
   if (x.shape[0] != n):
