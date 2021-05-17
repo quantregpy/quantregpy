@@ -14,7 +14,7 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('quantregpy', parent_package, top_path)
 
     rqfName = '_fortran'
-    rqfSources = ['./_fortran/rqs.f', './_fortran/rq0.f', './_fortran/rq1.f', './_fortran/rqbr.f', './_fortran/rqfnb.f', './_fortran/rqfnc.f','./_fortran/crq.f', './_fortran/qfnb.f', './_fortran/pfnb.f', './_fortran/kuantiles.f', './_fortran/dsel05.f']
+    rqfSources = ['./_fortran/rqs.f', './_fortran/rq0.f', './_fortran/rq1.f', './_fortran/rqbr.f', './_fortran/rqfnb.f', './_fortran/rqfnc.f','./_fortran/crq.f', './_fortran/rqfnb.f', './_fortran/pfnb.f', './_fortran/kuantiles.f', './_fortran/dsel05.f']
     lapack_info = get_info('lapack_opt', 0)
     blasFiles = ["./_fortran/blas_src/dcopy.f", "./_fortran/blas_src/dgemv.f", "./_fortran/blas_src/lsame.f", "./_fortran/blas_src/xerbla.f", "./_fortran/blas_src/dpotrs.f", "./_fortran/blas_src/dposv.f", "./_fortran/blas_src/dsyr.f", "./_fortran/blas_src/dtrsm.f", "./_fortran/blas_src/dpotrf.f", "./_fortran/blas_src/dpotrf2.f", "./_fortran/blas_src/dsyrk.f", "./_fortran/blas_src/disnan.f", "./_fortran/blas_src/ilaenv.f", "./_fortran/blas_src/dgemm.f", "./_fortran/blas_src/ieeeck.f", "./_fortran/blas_src/iparmq.f", "./_fortran/blas_src/dlaisnan.f"]#[os.path.join("blas_src",f) for f in os.listdir("blas_src") if os.path.isfile(os.path.join("blas_src", f))]
     if lapack_info:
