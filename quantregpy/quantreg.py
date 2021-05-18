@@ -9,7 +9,10 @@ import collections
 from patsy import dmatrices, DesignMatrix
 import logging
 
+
+
 logger = logging.getLogger(__name__)
+
 Fit = collections.namedtuple(
   'Fit', 
   'na_action formula terms x_design y_design call tau weights residuals rho method model coefficients fitted_values na_message Class')
@@ -65,10 +68,10 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
   call = baseCall + ", " + expandedArgs
   mf = baseCall + f", args = {args}"
   m = ",".join([param for param in mf.split(",") if param in ("formula", "data", "subset", "weights", "na_action")])
-  Y, X = dmatrices(formula, data)
-  mt = X.design_info.term_names
-  eps = np.finfo(float).eps**(2/3)
-  Rho = lambda u, tau: u * (tau - (u < 0)) 
+  Y, X = dmatrices(formula, data) # DesignMatrix
+  mt = X.design_info.term_names # List[str]
+  eps = np.finfo(float).eps**(2/3) # float
+  Rho = lambda u, tau: u * (tau - (u < 0)) # Callable
   if(tau.shape[0]>1):
     if(np.any(tau < 0) or np.any(tau > 1)):
       logger.error("invalid tau:  taus should be >= 0 and <= 1")
@@ -106,26 +109,25 @@ def rq(formula : str, tau : np.array, data : pd.DataFrame, subset = None, weight
     if(process):
       rho = [fit['sol'][1,:],fit['sol'][3,:]]
     else:
-      rho = np.sum(Rho(fit['residuals'],tau))  
+      rho = np.sum(Rho(fit['residuals'],tau)) # np.ndarray
     if(method == "lasso"):
       fit['Class'] = ("lassorq","rq")
     elif(method == "scad"):
       fit['Class'] = ("scadrq","rq")
     else:
       fit['Class'] = "rq.process" if process else "rq"
-  fit['na_action'] = na_action
-  fit['formula'] = formula
-  fit['terms'] = mt
-  fit['x_design'] = X.design_info
-  fit['y_design'] = Y.design_info
-  fit['call'] = call
-  fit['tau'] = tau
-  fit['weights'] = weights
-  fit['rho'] = rho
-  fit['method'] = method
-  fit['na_message'] = "" # unsure what to do here m.na_message
+  fit['na_action'] = na_action # Callable
+  fit['formula'] = formula # str
+  fit['terms'] = mt # List[str]
+  fit['x_design'] = X.design_info # DesignInfo
+  fit['y_design'] = Y.design_info # DesignInfo
+  fit['call'] = call # str
+  fit['tau'] = tau # np.ndarray
+  fit['weights'] = weights # Union[None, np.ndarray]
+  fit['rho'] = rho  # np.ndarray
+  fit['method'] = method # str
   if(model):
-    fit['model'] = mf
+    fit['model'] = mf # str
   return fit
 
 def rq_fit(x : np.array, y : np.array, tau = 0.5, method = "br", *args):
@@ -417,6 +419,7 @@ def rq_fit_qfnb(x,y,tau):
   return dict(coefficients = coefficients, nit = nit, flag = info)
 
 def rq_fit_pfnb (x, y, tau = np.array([0.5]), m0 = None, eps = 1e-06):
+  tau = np.array([tau]) if type(tau) is float else tau
   m = len(tau)
   n = len(y)
   if (x.shape[0] != n):
