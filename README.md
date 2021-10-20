@@ -1,8 +1,9 @@
+## Update September 2021
+Scikit Learn introduced version 1.0, and with it an implementation of quantile regression. Granted, there are some features that exist here that don't exist in Scikit Learn, it doesn't make much sense to keep working on this project in parallel. Development on this project is therefore suspended.
+
 # quantregpy
 A translation of the popular R library quantreg (Authored by Roger Koenker) to python for quantile regression
 
-## Update September 2021
-Scikit Learn introduced version 1.0, and with it an implementation of quantile regression. Granted, there are some features that exist here that don't exist in Scikit Learn, it doesn't make much sense to keep working on this project in parallel. Development on this project is therefore suspended.
 
 **This library is very much experimental at this point.
 
