@@ -30,7 +30,7 @@ metadata = dict(
     license='GNU',
     python_requires='>=3.6',
     version=version,
-    install_requires = ["patsy", "numpy==1.19.2", "scipy", "pandas", "scikit-learn"]
+    install_requires = ["patsy", "numpy", "scipy", "pandas", "scikit-learn"]
 )
 # Disable OSX Accelerate, it has too old LAPACK
 
